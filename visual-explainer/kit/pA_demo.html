@@ -1,0 +1,47 @@
+
+<!-- ============================ A · ONE CHAPTER, THE SHAPE TO COPY ============================ -->
+<article class="page" data-id="demo" data-part="Zero 1: the idea"
+         data-nav="A queue absorbs a burst"
+         data-say="Drag <b>burst size</b> and watch the queue fill. This text shows only when a page has no steps.">
+  <div class="crumb"><b>Chapter A1</b> every page answers one question</div>
+
+  <!-- The headline IS the question. Colour the operative word: em = neutral, em.bad = the problem, em.good = the fix. -->
+  <h2>Why does a steady worker still need a <em>queue</em>?</h2>
+
+  <div class="stage">
+    <div class="figbox">
+      <!-- controls first: one row, uppercase micro-labels, a live readout -->
+      <div class="ctl" style="margin-top:0">
+        <label>burst <input id="qBurst" type="range" min="1" max="8" step="1" value="6"></label>
+        <span class="readout" id="qRead"></span>
+        <span class="seg" id="qRate">
+          <button data-v="1" aria-pressed="true">1 / tick</button>
+          <button data-v="2" aria-pressed="false">2 / tick</button>
+        </span>
+      </div>
+      <!-- .scroll keeps wide drawings swipeable on a phone instead of cropping them -->
+      <div class="scroll"><div id="qFig"></div></div>
+      <p class="cap">Yellow = waiting. Green = done this tick. The drawing is the argument; the caption is one line.</p>
+    </div>
+
+    <aside class="side">
+      <!-- the narration card is injected here by shell.js, above whatever you put next -->
+      <div class="stats">
+        <div class="stat"><b id="qPeak">—</b><span>peak items waiting</span></div>
+        <div class="stat"><b class="grn" id="qDrop">0</b><span>requests dropped</span></div>
+      </div>
+      <div class="verdict good"><b>A queue buys time, not throughput.</b> If the burst never ends, no queue size saves you — only a faster worker does.</div>
+      <div class="words">The "words" panel is for the reader who wants prose. It is hidden until they press <b>w</b>, so the default view stays visual. Put nuance, caveats and the second-order detail here, never in the drawing.</div>
+      <div class="src">Source: your measurement, paper or code path &middot; <code>path/to/file.py:42</code></div>
+    </aside>
+  </div>
+
+  <!-- One <li> per step. Hidden from view: shell.js turns these into the narration bar + dots,
+       and reveals every [data-s="k"] element in the drawing as the reader reaches step k. -->
+  <ol class="steps" hidden>
+    <li>A <b>burst</b> arrives: six requests in the time the worker can finish one.</li>
+    <li>The <b>queue</b> holds what the worker cannot take yet — nothing is thrown away.</li>
+    <li>The worker drains at <b>its own rate</b>, tick after tick, never faster.</li>
+    <li>What you must size is the <b>peak</b>, and the peak is burst minus rate — not the average.</li>
+  </ol>
+</article>

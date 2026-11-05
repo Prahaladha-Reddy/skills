@@ -1,0 +1,84 @@
+{
+  "beats": [
+    {
+      "go": "",
+      "step": 1,
+      "wait": 0.3
+    },
+    {
+      "say": "IN_01",
+      "nowait": true,
+      "text": "In this video, we're going to learn how zero-shot voice cloning works, starting from scratch and going one step at a time."
+    },
+    {
+      "sweep": ".page.on h1",
+      "hold": 3.0
+    },
+    {
+      "sweep": ".page.on .lede",
+      "hold": 2.4
+    },
+    {
+      "sync": 1
+    },
+    {
+      "say": "IN_02",
+      "nowait": true,
+      "text": "We've split the whole idea into ten chapters, and each one comes with drawings you can step through and real audio you can play."
+    },
+    {
+      "hover": "#partCards .pcard:nth-child(1)",
+      "hold": 0.5,
+      "noring": true
+    },
+    {
+      "hover": "#partCards .pcard:nth-child(10)",
+      "hold": 0.5,
+      "noring": true
+    },
+    {
+      "hover": "#partCards",
+      "circle": true,
+      "big": true,
+      "noring": true,
+      "hold": 3.2
+    },
+    {
+      "sync": 1
+    },
+    {
+      "say": "IN_03",
+      "nowait": true,
+      "text": "The explainer itself is a public website, so you can explore it on your own as well. The link is in the description."
+    },
+    {
+      "hover": ".page.on .how span:nth-child(1)",
+      "hold": 1.2,
+      "noring": true
+    },
+    {
+      "hover": ".page.on .how span:nth-child(2)",
+      "hold": 1.2,
+      "noring": true
+    },
+    {
+      "hover": ".page.on .how span:nth-child(3)",
+      "hold": 1.2,
+      "noring": true
+    },
+    {
+      "sync": 1
+    },
+    {
+      "say": "IN_04",
+      "text": "Alright, let's start with the first chapter.",
+      "point": "a.btn"
+    },
+    {
+      "click": "a.btn"
+    },
+    {
+      "pause": 0.6
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset="utf-8"><title>intro</title>
+<!-- Intro beat: image tiles drift around a prism arc on pitch black, the title and lines arrive one beat apart,
+     then the camera flies into the HERO tile (make that tile the first frame of your next beat for an invisible cut).
+     Edit CONFIG only. Ground image: python make_grounds.py -> assets/ground_prism.png. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000}
+#ground{position:absolute;inset:0;background:#000 url(assets/ground_prism.png) center/cover}
+#world{position:absolute;inset:0;transform-origin:0 0}
+.tile{position:absolute;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55);background-size:cover;background-position:center}
+#txt{position:absolute;left:0;right:0;top:200px;text-align:center;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#t{font:118px/1.05 "Instrument Serif",Georgia,serif}
+#t i{font-style:italic}
+.ln{font:32px/1.5 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.02em;margin-top:18px;opacity:0}
+.ln.big{font-size:42px;color:#e8370a}
+</style></head><body>
+<div id="ground"></div><div id="world"></div>
+<div id="txt"><div id="t"></div><div id="lines"></div></div>
+<script>
+const CONFIG = {
+  title: 'Introducing <i>Your Model</i>',
+  lines: [ ['speech → text · speech → decisions', ''], ['450M parameters', 'big'], ['completely open source', ''] ],
+  // tiles: image paths (moodboard photos, generated stills). Empty src = a gradient placeholder.
+  tiles: [ {src:'', c:['#f4a15d','#e8370a']}, {src:'', c:['#9cb3f0','#3949c8']}, {src:'', c:['#f2d3c4','#c2627a']},
+           {src:'', c:['#3a8f7a','#0f3d34']}, {src:'', c:['#ffd38a','#f07f2a']}, {src:'', c:['#b8a6e6','#5b3fa3']},
+           {src:'', c:['#eee','#999']}, {src:'', c:['#ff9e7a','#c2301c']} ],
+  HERO: 0,               // which tile the camera flies into
+  tTitle: 0.6, gap: 0.55, // title time, then one line every `gap` seconds
+  tFly: 5.0, flyDur: 1.6, DUR: 6.8
+};
+window.DUR = CONFIG.DUR;
+const W = document.getElementById('world'), N = CONFIG.tiles.length, tiles = [];
+const clamp = (x,a=0,b=1)=>Math.max(a,Math.min(b,x)), ease = x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+CONFIG.tiles.forEach((d,i)=>{ const e=document.createElement('div'); e.className='tile';
+  e.style.backgroundImage = d.src ? `url(${d.src})` : `linear-gradient(135deg,${d.c[0]},${d.c[1]})`;
+  W.appendChild(e); tiles.push(e); });
+document.getElementById('t').innerHTML = CONFIG.title;
+const L = document.getElementById('lines');
+CONFIG.lines.forEach(([s,c])=>{ const e=document.createElement('div'); e.className='ln '+c; e.textContent=s; L.appendChild(e); });
+// tile placement along an arc around the title (deterministic)
+function place(i,t){ const a = Math.PI*(1.14 + 0.72*i/(N-1)) + 0.02*t, R = 640 + 50*Math.sin(i*1.7);   // lower arc, clear of the title
+  const w = 250 + 40*((i*37)%3), h = w*0.62;
+  return {x: 960 + 1.45*R*Math.cos(a) - w/2, y: 1340 + R*Math.sin(a) - h/2, w, h}; }
+window.render = t => {
+  const ps = tiles.map((e,i)=>{ const p = place(i,t), k = clamp((t-0.1*i)/0.8);
+    e.style.left=p.x+'px'; e.style.top=(p.y+40*(1-ease(k)))+'px'; e.style.width=p.w+'px'; e.style.height=p.h+'px';
+    e.style.opacity = ease(k); return p; });
+  document.getElementById('t').style.opacity = ease(clamp((t-CONFIG.tTitle)/0.6));
+  [...L.children].forEach((e,i)=>{ const k=ease(clamp((t-CONFIG.tTitle-CONFIG.gap*(i+1))/0.5));
+    e.style.opacity=k; e.style.transform=`translateY(${12*(1-k)}px)`; });
+  // camera: log-space zoom into the hero tile, 1% overshoot, text fades first
+  const p = ps[CONFIG.HERO], k = clamp((t-CONFIG.tFly)/CONFIG.flyDur);
+  const zEnd = 1920/p.w, z = Math.exp(Math.log(zEnd)*ease(k)) * (1 + 0.01*Math.sin(Math.PI*k));
+  const cx = p.x + p.w/2, cy = p.y + p.h/2, fx = 960 + (cx-960)*ease(k), fy = 540 + (cy-540)*ease(k);
+  W.style.transform = `translate(${960 - fx*z}px,${540 - fy*z}px) scale(${z})`;
+  document.getElementById('ground').style.opacity = 1 - ease(clamp((k-0.3)/0.5));
+  document.getElementById('txt').style.opacity = 1 - ease(clamp(k/0.35));
+};
+Promise.all([document.fonts.ready, ...CONFIG.tiles.filter(d=>d.src).map(d=>new Promise(r=>{const im=new Image(); im.onload=im.onerror=r; im.src=d.src;}))])
+  .then(()=>{ window.render(0); window.ready = true; }).catch(e=>console.error(e));
+</script></body></html>

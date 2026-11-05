@@ -1,0 +1,16 @@
+<!-- ============ A · THE SHAPE TO COPY (v4 side panel: drawing left, steps right, one screen per step) ============ -->
+<article class="page" data-id="demo" data-part="The idea" data-nav="A queue absorbs a burst">
+  <div class="crumb"><b>Chapter A1</b> Every page answers one question.</div>
+  <h2>Why does a steady worker still need a <em>queue</em>?</h2>
+  <div class="figbox">
+    <div class="ctl" style="margin-top:0"><label>burst <input id="qBurst" type="range" min="1" max="8" step="1" value="6"></label><span class="readout" id="qRead"></span><span class="seg" id="qRate"><button data-v="1" aria-pressed="true">1 / tick</button><button data-v="2" aria-pressed="false">2 / tick</button></span></div>
+    <div class="fig" id="qFig"></div>
+  </div>
+  <ol class="steps">
+    <li><b>Requests arrive in a burst</b><p>Six requests come at the same time. The worker can do one in each tick. Look at the yellow items on the left.</p></li>
+    <li><b>The queue holds the extra</b><p>The worker takes one request. The other five wait in the queue. Nothing is lost.</p><div class="big"><div><b class="blue" id="qPeak">—</b><span>items waiting at the peak</span></div></div></li>
+    <li><b>The queue drains</b><p>Each tick, one request finishes and turns green. After the burst, the queue becomes empty again.</p></li>
+    <li><b>Move the slider</b><p>Make the burst bigger. The queue grows, but the worker speed stays the same.</p></li>
+  </ol>
+  <div class="takeaway good"><b>A queue buys time, not speed.</b> If the burst never ends, only a faster worker helps.</div>
+</article>

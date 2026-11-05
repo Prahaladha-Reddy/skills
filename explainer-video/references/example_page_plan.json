@@ -1,0 +1,66 @@
+{
+  "beats": [
+    {
+      "go": "clone",
+      "step": 1
+    },
+    {
+      "say": "AB_clone_01a",
+      "text": "This whole site is about one question: how can a model copy a voice from just ten seconds of audio? The top row is a real radio host, and we'll listen to her clip first.",
+      "point": "halo"
+    },
+    {
+      "play": {
+        "sel": ".page.on [data-src=\"a/ref.mp3\"]",
+        "file": "a/ref.mp3",
+        "dur": 10.1
+      }
+    },
+    {
+      "say": "AB_clone_01c",
+      "text": "That's all the model ever hears of her, just those ten seconds of audio."
+    },
+    {
+      "next": 1
+    },
+    {
+      "say": "AB_clone_02a",
+      "text": "Now we write a Hindi sentence she never said, about being happy without waiting for a special occasion. The model gets her clip, her transcript and this new sentence, and nothing else about her.",
+      "point": "halo"
+    },
+    {
+      "next": 1
+    },
+    {
+      "say": "AB_clone_03a",
+      "text": "Look at the bottom row. It's seven point four three seconds of new speech, drawn on the same time scale as the top row, so you can compare the lengths directly. Let's listen.",
+      "point": "halo"
+    },
+    {
+      "play": {
+        "sel": ".page.on [data-src=\"a/clone.mp3\"]",
+        "file": "a/clone.mp3",
+        "dur": 7.43
+      }
+    },
+    {
+      "say": "AB_clone_03c",
+      "text": "A new sentence, in a voice like hers. We'll measure how much like hers in a moment."
+    },
+    {
+      "next": 1
+    },
+    {
+      "say": "AB_clone_04a",
+      "text": "Zero-shot means zero training steps on her. The model is made of fixed numbers, called weights.",
+      "point": "halo"
+    },
+    {
+      "say": "AB_clone_04b",
+      "text": "A weight is just a fixed number used in a weighted sum, and training chose them long ago. While cloning her, not one weight changes."
+    },
+    {
+      "next": 1
+    }
+  ]
+}

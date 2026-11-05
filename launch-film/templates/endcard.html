@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><title>endcard</title>
+<!-- End card: back to the opening's black + prism arc. Every supported language, written in its own script, appears
+     around the arc; then the name, two lines and the link. Edit CONFIG only.
+     Load one Noto Serif face per script you show, and check every script in a still (a missing font draws boxes). -->
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+Devanagari&family=Noto+Serif+Telugu&family=Noto+Serif+Tamil&family=Noto+Serif+Bengali&family=Noto+Serif+Kannada&family=Noto+Serif+Malayalam&family=Noto+Serif+Gujarati&family=Noto+Serif+Gurmukhi&family=Noto+Serif+Oriya&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000}
+#ground{position:absolute;inset:0;background:#000 url(assets/ground_prism.png) center/cover}
+.w{position:absolute;color:#fff;font-size:40px;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+#txt{position:absolute;left:0;right:0;top:316px;text-align:center;color:#fff}
+#t{font:152px/1 "Instrument Serif",Georgia,serif}#t i{font-style:italic}
+#l0{font:44px/1.4 "IBM Plex Mono",monospace;color:#e8370a;margin-top:26px}
+#l1{font:34px/1.4 "IBM Plex Mono",monospace;margin-top:10px}
+#url{font:46px/1.4 "IBM Plex Mono",monospace;margin-top:30px}
+</style></head><body>
+<div id="ground"></div><div id="words"></div>
+<div id="txt"><div id="t"></div><div id="l0"></div><div id="l1"></div><div id="url"></div></div>
+<script>
+const CONFIG = {
+  words: [ ['नमस्ते','Noto Serif Devanagari'], ['నమస్కారం','Noto Serif Telugu'], ['வணக்கம்','Noto Serif Tamil'],
+           ['নমস্কার','Noto Serif Bengali'], ['ನಮಸ್ಕಾರ','Noto Serif Kannada'], ['നമസ്കാരം','Noto Serif Malayalam'],
+           ['નમસ્તે','Noto Serif Gujarati'], ['ਸਤ ਸ੍ਰੀ ਅਕਾਲ','Noto Serif Gurmukhi'], ['ନମସ୍କାର','Noto Serif Oriya'],
+           ['नमस्कार','Noto Serif Devanagari'], ['hello','Instrument Serif'] ],
+  title: '<i>Your Model</i>', l0: 'speech → text · speech → decisions', l1: '11 languages · open weights',
+  url: 'huggingface.co/you/your-model', DUR: 7.4
+};
+window.DUR = CONFIG.DUR;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)), ease=x=>1-Math.pow(1-x,3);
+const box=document.getElementById('words'), N=CONFIG.words.length;
+const ws = CONFIG.words.map(([s,f],i)=>{ const e=document.createElement('div'); e.className='w'; e.textContent=s; e.style.fontFamily=`"${f}",serif`;
+  const h=Math.ceil(N/2), side=i<h?0:1, j=side?i-h:i, m=side?N-h:h, a=Math.PI*(side? 2-0.32*j/Math.max(1,m-1) : 1+0.32*j/Math.max(1,m-1));
+  e.style.left=(960+860*Math.cos(a))+'px'; e.style.top=(1020+760*Math.sin(a))+'px'; box.appendChild(e); return e; });   // words on the left and right flanks only
+['t','l0','l1','url'].forEach(k=>document.getElementById(k).innerHTML=CONFIG[k==='t'?'title':k]);
+window.render = t => {
+  document.getElementById('ground').style.opacity = ease(clamp(t/0.6));
+  ws.forEach((e,i)=>{ const k=ease(clamp((t-0.3-0.09*i)/0.5)); e.style.opacity=k; e.style.marginTop=(14*(1-k))+'px'; });
+  [['t',1.4],['l0',2.0],['l1',2.4],['url',2.9]].forEach(([id,s])=>{ const k=ease(clamp((t-s)/0.6)), e=document.getElementById(id);
+    e.style.opacity=k; e.style.transform=`translateY(${14*(1-k)}px)`; });
+  document.body.style.opacity = 1 - clamp((t-(CONFIG.DUR-0.5))/0.5);   // fade to black at the very end
+};
+// load one glyph per font so a missing script fails visibly in the stills
+Promise.all(CONFIG.words.map(([s,f])=>document.fonts.load(`40px "${f}"`, s))).then(()=>document.fonts.ready)
+  .then(()=>{ window.render(0); window.ready=true; }).catch(e=>{ console.error(e); window.ready=true; });
+</script></body></html>

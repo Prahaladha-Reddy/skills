@@ -1,0 +1,118 @@
+<!doctype html><html><head><meta charset="utf-8"><title>network</title>
+<!-- Model-at-work beat. As the clip plays, its strip lights up left to right, each lit frame flies into a small symbolic
+     network on a soft panel (pre-neural diagrams blended behind it), and two streams leave it: the transcript, word by
+     word, and the decisions as bars. Then the camera visits the transcript and the decisions.
+     Edit DATA only, and put ONLY the model's real output on the exact clip you play (see references/truth.md).
+     Optional: assets/ground_bloom.png (make_grounds.py), diagrams.js (gen_diagrams.py), assets/strip.png (your own strip art). -->
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1a22;--accent:#e8370a;--panel:rgba(226,216,242,.86);--hair:rgba(27,26,34,.16)}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#fdf1e8}
+#ground{position:absolute;inset:0;background:#fdf1e8 url(assets/ground_bloom.png) center/cover}
+#world{position:absolute;inset:0;transform-origin:0 0}
+#pill{position:absolute;left:80px;top:110px;font:38px/1 "IBM Plex Mono",monospace;color:var(--ink);background:rgba(255,255,255,.75);
+  padding:16px 26px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.08)}
+#strip{position:absolute;left:80px;top:390px;width:540px;height:300px}
+.sl{position:absolute;top:0;height:300px;border-radius:3px;background:rgba(27,26,34,.10);overflow:hidden}
+.sl i{position:absolute;left:0;right:0;background:var(--ink);opacity:.35}
+.sl.lit i{background:var(--accent);opacity:1}
+#npan{position:absolute;left:700px;top:230px;width:520px;height:620px;border-radius:26px;background:var(--panel);overflow:hidden;
+  box-shadow:0 20px 60px rgba(60,40,120,.18)}
+#nbg{position:absolute;inset:0;display:flex;gap:6px;justify-content:center;align-items:center;opacity:.6;mix-blend-mode:multiply;filter:grayscale(1)}
+#nbg svg{width:150px;height:280px}
+#net{position:absolute;inset:0}
+.fly{position:absolute;width:14px;height:44px;border-radius:3px;background:var(--accent);opacity:0}
+#out{position:absolute;left:1290px;top:230px;width:580px}
+#tr{background:rgba(255,255,255,.82);border-radius:20px;padding:22px 26px;min-height:150px;font:50px/1.3 "Noto Serif Devanagari","Instrument Serif",serif;color:var(--ink)}
+#tr span{opacity:0}
+#dec{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.card{background:rgba(255,255,255,.86);border-radius:16px;padding:12px 16px}
+.card .q{font:500 24px/1.2 "IBM Plex Mono",monospace;color:#6b6676}
+.card .q b{color:var(--accent);font-weight:600}
+.opt{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:10px;margin-top:6px}
+.opt .k{font:600 34px/1 "IBM Plex Mono",monospace;color:var(--ink)}
+.opt .bar{grid-column:1/3;grid-row:2;margin-top:6px;height:12px;border-radius:6px;background:rgba(27,26,34,.08);overflow:hidden}
+.opt .bar i{display:block;height:100%;width:0;background:var(--accent)}
+.opt.lo .k{color:#8d8896}.opt.lo .bar i{background:#bdb7c7}
+.opt .p{font:500 30px/1 "IBM Plex Mono",monospace;color:var(--ink)}
+svg path.stream{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round}
+</style></head><body>
+<div id="ground"></div>
+<div id="world">
+  <div id="pill"></div>
+  <div id="strip"></div>
+  <div id="npan"><div id="nbg"></div><svg id="net" viewBox="0 0 520 620"></svg></div>
+  <svg id="streams" width="1920" height="1080" style="position:absolute;left:0;top:0;overflow:visible"></svg>
+  <div id="out"><div id="tr"></div><div id="dec"></div></div>
+  <div id="flies"></div>
+</div>
+<script src="diagrams.js"></script><!-- optional: python gen_diagrams.py -->
+<script>
+const DATA = {
+  clip: 3.6,                                   // seconds of real audio this beat plays (join.sh lays it at this beat's start)
+  pill: 'Hear one voice through a busy street',
+  wave: [],                                    // per-frame loudness 0..1 from YOUR clip (empty = seeded placeholder)
+  transcript: 'नमस्ते, मेरा ऑर्डर अभी तक नहीं आया',  // the model's real text on the exact mix
+  decisions: [                                 // the model's real answers; voice:true = not in the words, from the sound
+    {q:'woman?', voice:true, opts:[['yes',.97],['no',.03]]},
+    {q:'emotion', voice:true, opts:[['annoyed',.71],['calm',.22]]},
+    {q:'language', opts:[['hindi',.99],['english',.01]]},
+    {q:'complaining?', opts:[['yes',.94],['no',.06]]},
+    {q:'bargaining?', opts:[['no',.88],['yes',.12]]},
+    {q:'sentiment', opts:[['negative',.90],['neutral',.09]]} ],
+  // camera keyframes [time, centre x, centre y, zoom]; times are after the clip ends
+  cam: d => [[0,960,540,1],[d+0.5,960,540,1],[d+1.4,1580,320,1.85],[d+3.2,1580,320,1.85],[d+4.1,1580,700,1.4],[d+6.2,1580,700,1.4]],
+  tail: 6.4
+};
+const D = DATA.clip; window.DUR = D + DATA.tail;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)), ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2, $=id=>document.getElementById(id);
+let seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const NS=48, wave = DATA.wave.length ? DATA.wave : Array.from({length:NS},(_,i)=>.25+.6*Math.abs(Math.sin(i*.37))*rnd());
+$('pill').textContent = DATA.pill;
+// strip of frames
+const slices = wave.map((a,i)=>{ const e=document.createElement('div'); e.className='sl'; const w=540/wave.length;
+  e.style.left=(i*w)+'px'; e.style.width=(w-3)+'px'; const b=document.createElement('i'); b.style.top=(150-140*a)+'px'; b.style.bottom=(150-140*a)+'px';
+  e.appendChild(b); $('strip').appendChild(e); return e; });
+const flies = wave.map(()=>{ const e=document.createElement('div'); e.className='fly'; $('flies').appendChild(e); return e; });
+// diagrams behind the network
+if (window.DIAG) DIAG.slice(0,3).forEach(d=>{ $('nbg').insertAdjacentHTML('beforeend', d.svg || d); });
+// symbolic network: 4 columns
+const cols=[5,7,7,4], NSV='http://www.w3.org/2000/svg', net=$('net'), nodes=[];
+const mk=(tag,at,p)=>{ const e=document.createElementNS(NSV,tag); for(const k in at) e.setAttribute(k,at[k]); (p||net).appendChild(e); return e; };
+const pos=(c,r)=>[90+c*113, 310+(r-(cols[c]-1)/2)*72];
+const edges=[];
+for(let c=0;c<cols.length-1;c++) for(let r=0;r<cols[c];r++) for(let s=0;s<cols[c+1];s++){
+  const [x1,y1]=pos(c,r),[x2,y2]=pos(c+1,s); edges.push([c,mk('line',{x1,y1,x2,y2,stroke:'#1b1a22','stroke-opacity':.12,'stroke-width':1.4})]); }
+cols.forEach((n,c)=>{ for(let r=0;r<n;r++){ const [x,y]=pos(c,r); nodes.push([c,mk('circle',{cx:x,cy:y,r:15,fill:'#fff',stroke:'#1b1a22','stroke-opacity':.35,'stroke-width':2})]); }});
+// streams out of the panel
+const S=$('streams'); const sTr=mk('path',{class:'stream',d:'M1220 540 C1260 540 1250 300 1290 300',pathLength:1},S),
+      sDe=mk('path',{class:'stream',d:'M1220 560 C1260 560 1250 620 1290 620',pathLength:1},S);
+[sTr,sDe].forEach(p=>{p.style.strokeDasharray=1;p.style.strokeDashoffset=1;});
+// transcript + decisions
+const words = DATA.transcript.split(' '); $('tr').innerHTML = words.map(w=>`<span>${w}</span>`).join(' ');
+const spans=[...$('tr').children];
+$('dec').innerHTML = DATA.decisions.map(d=>`<div class="card"><div class="q">${d.voice?'<b>♪ voice</b> ':''}${d.q}</div>`+
+  d.opts.map((o,j)=>`<div class="opt ${j?'lo':''}"><span class="k">${o[0]}</span><span class="bar"><i></i></span><span class="p">${Math.round(o[1]*100)}%</span></div>`).join('')+`</div>`).join('');
+const bars=[...document.querySelectorAll('.bar i')].map((e,i)=>[e, DATA.decisions[Math.floor(i/2)].opts[i%2][1], Math.floor(i/2)]);
+function cam(t){ const K=DATA.cam(D);                      // x,y eased linearly, zoom eased in log space
+  if(t>=K[K.length-1][0]) return K[K.length-1].slice(1);
+  let i=1; while(t>K[i][0]) i++;
+  const a=K[i-1], b=K[i], k=ease(clamp((t-a[0])/((b[0]-a[0])||1)));
+  return [a[1]+(b[1]-a[1])*k, a[2]+(b[2]-a[2])*k, Math.exp(Math.log(a[3])+(Math.log(b[3])-Math.log(a[3]))*k)]; }
+window.render = t => {
+  const f = clamp(t/D);                                     // fraction of the clip heard
+  slices.forEach((e,i)=>e.classList.toggle('lit', i/wave.length < f));
+  flies.forEach((e,i)=>{ const ti=(i/wave.length)*D, k=clamp((t-ti)/0.5); if(t<ti||k>=1){e.style.opacity=0;return;}
+    const x0=80+i*540/wave.length, y0=520, x1=710, y1=310+(i%5-2)*72, kk=ease(k);
+    e.style.left=(x0+(x1-x0)*kk)+'px'; e.style.top=(y0+(y1-y0)*kk-60*Math.sin(Math.PI*kk))+'px'; e.style.opacity=(1-k)*.9; });
+  nodes.forEach(([c,e],i)=>{ const a = t<D ? Math.max(0,Math.sin(t*6-c*1.3+i*.7)) : clamp(1-(t-D)/1.2)*.6;
+    e.setAttribute('fill', `rgba(232,55,10,${(0.15+0.85*a)*clamp(t/0.4)})`); });
+  edges.forEach(([c,e])=>e.setAttribute('stroke-opacity', .1 + (t<D ? .25*Math.max(0,Math.sin(t*6-c*1.3)) : 0)));
+  sTr.style.strokeDashoffset = 1-clamp((t-0.3)/0.6); sDe.style.strokeDashoffset = 1-clamp((t-0.5)/0.6);
+  spans.forEach((e,i)=>{ const ti = 0.15*D + (i/words.length)*0.85*D; e.style.opacity = ease(clamp((t-ti)/0.25)); });
+  bars.forEach(([e,p,c])=>{ const k=ease(clamp((t-0.55*D-0.12*c)/(0.45*D+0.6))); e.style.width=(100*p*k)+'%'; });
+  const [cx,cy,z]=cam(t); $('world').style.transform=`translate(${960-cx*z}px,${540-cy*z}px) scale(${z})`;
+};
+document.fonts.load('50px "Noto Serif Devanagari"', DATA.transcript).then(()=>document.fonts.ready)
+  .then(()=>{ window.render(0); window.ready=true; }).catch(e=>{ console.error(e); window.ready=true; });
+</script></body></html>
